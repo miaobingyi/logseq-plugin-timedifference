@@ -20,7 +20,8 @@
   },
   "logseq": {
     "id": "logseq-plugin-timedifference",
-    "main": "dist/index.html"
+    "main": "dist/index.html",
+    "icon": "./logo.png"
   },
    "repository": "https://github.com/miaobingyi/logseq-plugin-timedifference.git"
 }
