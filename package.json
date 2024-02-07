@@ -1,0 +1,15 @@
+{
+  "name": "logseq-plugin-timedifference",
+  "version": "0.1.0",
+  "description": "logseq软件中计算两个时间戳间隔时间的自用插件",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "miaobingyi",
+  "license": "MIT",
+  "dependencies": {
+    "@logseq/libs": "^0.0.17"
+  }
+}
