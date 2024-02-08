@@ -1,47 +1,49 @@
 import "@logseq/libs"
 
-async function calculateAndInsertTimeInterval() {
-    // 获取当前选中的块
+async function insertCurrentTimeOrCalculateInterval() {
     const currentBlock = await logseq.Editor.getCurrentBlock();
     if (!currentBlock) {
         logseq.App.showMsg('No block selected.');
         return;
     }
-    // 移除字符串中的所有空格
-    const contentWithoutSpaces = currentBlock.content.replace(/\s+/g, '');
 
-    // 使用正则表达式解析时间范围，支持全角和半角冒号
-    const timeRangeRegex = /(\d{1,2})[:：](\d{2})-(\d{1,2})[:：](\d{2})/;
-    const match = contentWithoutSpaces.match(timeRangeRegex);
-    if (match) {
-        const startTimeHours = parseInt(match[1], 10);
-        const startTimeMinutes = parseInt(match[2], 10);
-        const endTimeHours = parseInt(match[3], 10);
-        const endTimeMinutes = parseInt(match[4], 10);
+    const currentTime = new Date();
+    const currentHours = currentTime.getHours().toString().padStart(2, '0');
+    const currentMinutes = currentTime.getMinutes().toString().padStart(2, '0');
+    const formattedCurrentTime = `${currentHours}:${currentMinutes}`;
 
-        // 计算时间差
-        const startMinutes = startTimeHours * 60 + startTimeMinutes;
-        const endMinutes = endTimeHours * 60 + endTimeMinutes;
-        const diffMinutes = endMinutes - startMinutes;
-
-        const hours = Math.floor(diffMinutes / 60);
-        const minutes = diffMinutes % 60;
-
-        const timeIntervalText = `     ${hours} h ${minutes} mins`;
-
-        // 更新当前block内容，追加时间间隔
-        const updatedContent = `${currentBlock.content} ${timeIntervalText}`;
-        await logseq.Editor.updateBlock(currentBlock.uuid, updatedContent);
+    // 检测当前块内容是否为空或仅包含空格
+    if (!currentBlock.content.trim()) {
+        await logseq.Editor.updateBlock(currentBlock.uuid, formattedCurrentTime);
     } else {
-        logseq.App.showMsg('Please ensure the block contains a time range in the format HH:MM-HH:MM.');
+        // 尝试匹配HH:MM格式的时间，考虑空格和全角/半角冒号
+        const timeRegex = /(\d{1,2})\s*[:：]\s*(\d{2})$/;
+        const match = currentBlock.content.match(timeRegex);
+
+        if (match) {
+            const startTimeHours = parseInt(match[1], 10);
+            const startTimeMinutes = parseInt(match[2], 10);
+            const startMinutes = startTimeHours * 60 + startTimeMinutes;
+            const endMinutes = currentHours * 60 + parseInt(currentMinutes, 10);
+            const diffMinutes = endMinutes - startMinutes;
+
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+
+            const timeIntervalText = ` - ${formattedCurrentTime}    ${hours} h ${minutes} mins`;
+            const updatedContent = `${currentBlock.content}${timeIntervalText}`;
+            await logseq.Editor.updateBlock(currentBlock.uuid, updatedContent);
+        } else {
+            await logseq.Editor.updateBlock(currentBlock.uuid, `${currentBlock.content} ${formattedCurrentTime}`);
+        }
     }
 }
 
 function main() {
-    console.log("Time Difference plugin loaded");
+    console.log("Time Insertion & Interval Calculation plugin loaded");
 
-    // 注册斜杠命令 /cc
-    logseq.Editor.registerSlashCommand('cc', calculateAndInsertTimeInterval);
+    // 注册斜杠命令，比如 /cc
+    logseq.Editor.registerSlashCommand('cc', insertCurrentTimeOrCalculateInterval);
 }
 
 logseq.ready(main).catch(console.error);
