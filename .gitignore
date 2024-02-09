@@ -217,3 +217,7 @@ public/
 
 # FuseBox cache
 .fusebox/
+
+# idea folder
+.idea
+.idea/
