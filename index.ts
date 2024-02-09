@@ -12,37 +12,51 @@ async function insertCurrentTimeOrCalculateInterval() {
     const currentMinutes = currentTime.getMinutes().toString().padStart(2, '0');
     const formattedCurrentTime = `${currentHours}:${currentMinutes}`;
 
-    // 检测当前块内容是否为空或仅包含空格
-    if (!currentBlock.content.trim()) {
-        await logseq.Editor.updateBlock(currentBlock.uuid, formattedCurrentTime);
+    // 更新正则表达式以忽略时间格式中的空格
+    const fullPattern = /^(\d{2})\s*[:：]\s*(\d{2})\s*-\s*(\d{2})\s*[:：]\s*(\d{2})$/;
+    const startPattern = /^(\d{2})\s*[:：]\s*(\d{2})$/;
+    const startWithDashPattern = /^(\d{2})\s*[:：]\s*(\d{2})\s*-\s*$/;
+
+    let updatedContent = currentBlock.content.trim();
+
+    if (fullPattern.test(updatedContent)) {
+        // 已有开始和结束时间，重新计算间隔
+        let [_, startHour, startMinute, endHour, endMinute] = updatedContent.match(fullPattern);
+        let interval = calculateInterval(startHour, startMinute, endHour, endMinute);
+        updatedContent += ` ${interval}`;
+        logseq.App.showMsg('检测到开始和结束时间戳，计算时间间隔');
+    } else if (startWithDashPattern.test(updatedContent)) {
+        // 开始时间后直接跟随一个破折号，插入当前时间和间隔
+        let [_, startHour, startMinute] = updatedContent.match(startWithDashPattern);
+        let interval = calculateInterval(startHour, startMinute, currentHours, currentMinutes);
+        updatedContent += `${formattedCurrentTime} ${interval}`;
+        logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
+    } else if (startPattern.test(updatedContent)) {
+        // 仅有开始时间，添加破折号和当前时间，再加上间隔
+        let [_, startHour, startMinute] = updatedContent.match(startPattern);
+        let interval = calculateInterval(startHour, startMinute, currentHours, currentMinutes);
+        updatedContent += ` - ${formattedCurrentTime} ${interval}`;
+        logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
     } else {
-        // 尝试匹配HH:MM格式的时间，考虑空格和全角/半角冒号
-        const timeRegex = /(\d{1,2})\s*[:：]\s*(\d{2})$/;
-        const match = currentBlock.content.match(timeRegex);
-
-        if (match) {
-            const startTimeHours = parseInt(match[1], 10);
-            const startTimeMinutes = parseInt(match[2], 10);
-            const startMinutes = startTimeHours * 60 + startTimeMinutes;
-            const endMinutes = currentHours * 60 + parseInt(currentMinutes, 10);
-            const diffMinutes = endMinutes - startMinutes;
-
-            const hours = Math.floor(diffMinutes / 60);
-            const minutes = diffMinutes % 60;
-
-            const timeIntervalText = ` - ${formattedCurrentTime}    ${hours} h ${minutes} mins`;
-            const updatedContent = `${currentBlock.content}${timeIntervalText}`;
-            await logseq.Editor.updateBlock(currentBlock.uuid, updatedContent);
-        } else {
-            await logseq.Editor.updateBlock(currentBlock.uuid, `${currentBlock.content} ${formattedCurrentTime}`);
-        }
+        // 空白或其他内容，直接插入当前时间
+        updatedContent = formattedCurrentTime;
+        logseq.App.showMsg('判断为空白Block，插入当前时间戳');
     }
+
+    await logseq.Editor.updateBlock(currentBlock.uuid, updatedContent);
+}
+
+function calculateInterval(startHour, startMinute, endHour, endMinute) {
+    const start = parseInt(startHour, 10) * 60 + parseInt(startMinute, 10);
+    const end = parseInt(endHour, 10) * 60 + parseInt(endMinute, 10);
+    const diff = end - start;
+    const hours = Math.floor(diff / 60);
+    const minutes = diff % 60;
+    return `${hours} h ${minutes} mins`;
 }
 
 function main() {
     console.log("Time Insertion & Interval Calculation plugin loaded");
-
-    // 注册斜杠命令，比如 /cc
     logseq.Editor.registerSlashCommand('cc', insertCurrentTimeOrCalculateInterval);
 }
 
