@@ -12,10 +12,10 @@ async function insertCurrentTimeOrCalculateInterval() {
     const currentMinutes = currentTime.getMinutes().toString().padStart(2, '0');
     const formattedCurrentTime = `${currentHours}:${currentMinutes}`;
 
-    // 更新正则表达式以忽略时间格式中的空格
-    const fullPattern = /^(\d{2})\s*[:：]\s*(\d{2})\s*-\s*(\d{2})\s*[:：]\s*(\d{2})$/;
-    const startPattern = /^(\d{2})\s*[:：]\s*(\d{2})$/;
-    const startWithDashPattern = /^(\d{2})\s*[:：]\s*(\d{2})\s*-\s*$/;
+    // 更新正则表达式以忽略时间格式中的空格，将07：50和7：50同等看待
+    const fullPattern = /^(\d{1,2})\s*[:：]\s*(\d{2})\s*-\s*(\d{1,2})\s*[:：]\s*(\d{2})$/;
+    const startPattern = /^(\d{1,2})\s*[:：]\s*(\d{2})$/;
+    const startWithDashPattern = /^(\d{1,2})\s*[:：]\s*(\d{2})\s*-\s*$/;
 
     let updatedContent = currentBlock.content.trim();
 
@@ -52,7 +52,7 @@ function calculateInterval(startHour, startMinute, endHour, endMinute) {
     const diff = end - start;
     const hours = Math.floor(diff / 60);
     const minutes = diff % 60;
-    return `${hours} h ${minutes} mins`;
+    return `    ${hours} h ${minutes} mins`;
 }
 
 function main() {
