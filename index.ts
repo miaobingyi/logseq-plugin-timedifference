@@ -24,23 +24,27 @@ async function insertCurrentTimeOrCalculateInterval() {
         let [_, startHour, startMinute, endHour, endMinute] = updatedContent.match(fullPattern);
         let interval = calculateInterval(startHour, startMinute, endHour, endMinute);
         updatedContent += ` ${interval}`;
-        logseq.App.showMsg('检测到开始和结束时间戳，计算时间间隔');
+        // logseq.App.showMsg('检测到开始和结束时间戳，计算时间间隔');
+        logseq.App.showMsg('Detected start and end timestamps, calculate the time interval.');
     } else if (startWithDashPattern.test(updatedContent)) {
         // 开始时间后直接跟随一个破折号，插入当前时间和间隔
         let [_, startHour, startMinute] = updatedContent.match(startWithDashPattern);
         let interval = calculateInterval(startHour, startMinute, currentHours, currentMinutes);
         updatedContent += `${formattedCurrentTime} ${interval}`;
-        logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
+        // logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
+        logseq.App.showMsg('Detected start timestamp, insert current timestamp and calculate the time interval.');
     } else if (startPattern.test(updatedContent)) {
         // 仅有开始时间，添加破折号和当前时间，再加上间隔
         let [_, startHour, startMinute] = updatedContent.match(startPattern);
         let interval = calculateInterval(startHour, startMinute, currentHours, currentMinutes);
         updatedContent += ` - ${formattedCurrentTime} ${interval}`;
-        logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
+        // logseq.App.showMsg('检测到开始时间戳，插入当前时间戳并计算时间间隔');
+        logseq.App.showMsg('Detected start timestamp, insert current timestamp and calculate the time interval.');
     } else {
         // 空白或其他内容，直接插入当前时间
         updatedContent = formattedCurrentTime;
-        logseq.App.showMsg('判断为空白Block，插入当前时间戳');
+        // logseq.App.showMsg('判断为空白Block，插入当前时间戳');
+        logseq.App.showMsg('Determine as an empty block, insert current timestamp.');
     }
 
     await logseq.Editor.updateBlock(currentBlock.uuid, updatedContent);
