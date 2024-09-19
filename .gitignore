@@ -167,7 +167,8 @@ bower_components/
 *.sublime-workspace
 
 # build outputs
-dist/
+
+
 build/
 
 # Optional npm cache directory
@@ -199,7 +200,7 @@ out/
 
 # Nuxt.js build output
 .nuxt
-dist/
+
 
 # Gatsby files
 .cache/
